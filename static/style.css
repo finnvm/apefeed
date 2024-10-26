@@ -16,9 +16,10 @@ body {
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     margin-bottom: 20px;
     color: #2b2b2b;
+    text-align: center;
 }
 
 form {
@@ -55,6 +56,7 @@ button {
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
+    width: 100%;
 }
 
 button:hover {
@@ -92,6 +94,20 @@ button:hover {
     color: #666;
 }
 
+/* Embedded Video Styling */
+.embed-container {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.embed-container iframe {
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
 /* Links */
 a {
     color: #4CAF50;
@@ -102,32 +118,16 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    form, #feed {
-        width: 100%;
-    }
-
-    h1 {
-        font-size: 2rem;
-    }
-}
-
-
-
-
-.pagination {
+/* Pagination and Shuffle Button */
+.pagination,
+.shuffle-button {
     display: flex;
     justify-content: center;
-    align-items: center;
     margin-top: 20px;
 }
 
-.pagination-link {
+.pagination-link,
+.shuffle-button button {
     padding: 8px 16px;
     background-color: #4CAF50;
     color: white;
@@ -138,44 +138,53 @@ a:hover {
     transition: background-color 0.2s ease;
 }
 
-.pagination-link:hover {
-    background-color: #45a049;
-}
-
-.pagination span {
-    font-size: 1rem;
-    color: #333;
-}
-
-
-
-
-.shuffle-button {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.shuffle-button button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 1rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
+.pagination-link:hover,
 .shuffle-button button:hover {
     background-color: #45a049;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
 
+    h1 {
+        font-size: 1.8rem;
+    }
 
+    form,
+    #feed {
+        width: 100%;
+    }
 
-.embed-container {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
+    .feed-item h2 {
+        font-size: 1.1rem;
+    }
+
+    .pagination-link,
+    .shuffle-button button {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .feed-item h2 {
+        font-size: 1rem;
+    }
+
+    .feed-item p {
+        font-size: 0.8rem;
+    }
+
+    .pagination-link,
+    .shuffle-button button {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
 }
