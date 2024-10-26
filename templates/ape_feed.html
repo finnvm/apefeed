@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>ApeFeed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Function to toggle the video embed with the YouTube embeddable URL format
+        function toggleEmbed(videoId, videoUrl) {
+            // Extract video ID from the full YouTube URL
+            const urlParams = new URL(videoUrl);
+            const videoID = urlParams.searchParams.get("v");
+            const embedUrl = `https://www.youtube.com/embed/${videoID}?autoplay=1`;
+
+            // Check if an embed container already exists
+            const existingEmbed = document.getElementById(`embed-${videoId}`);
+
+            if (existingEmbed) {
+                // If embed is already visible, remove it
+                existingEmbed.remove();
+            } else {
+                // Otherwise, create a new iframe embed
+                const embedContainer = document.createElement('div');
+                embedContainer.id = `embed-${videoId}`;
+                embedContainer.classList.add('embed-container');
+                
+                const iframe = document.createElement('iframe');
+                iframe.src = embedUrl;
+                iframe.width = "560";
+                iframe.height = "315";
+                iframe.frameBorder = "0";
+                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                iframe.allowFullscreen = true;
+
+                embedContainer.appendChild(iframe);
+
+                // Insert the embed container just below the title
+                const titleElement = document.getElementById(`title-${videoId}`);
+                titleElement.insertAdjacentElement('afterend', embedContainer);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>ApeFeed</h1>
+    
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-message">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="get" action="{{ url_for('ape_feed') }}">
+        <label for="tags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="tags" name="tags">
+        
+        <label for="sort">Sort by:</label>
+        <select id="sort" name="sort">
+            <option value="date_added" {% if not random_sort %}selected{% endif %}>Date Added</option>
+            <option value="RANDOM()" {% if random_sort %}selected{% endif %}>Random</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
+
+    <div id="feed">
+        {% for video in videos %}
+        <div class="feed-item">
+            <!-- Video title with clickable function -->
+            <h2 id="title-{{ video['id'] }}">
+                <a href="javascript:void(0);" onclick="toggleEmbed('{{ video['id'] }}', '{{ video['url'] }}')">
+                    {{ video['title'] }}
+                </a>
+            </h2>
+            <p>Published on: {{ video['publish_date'] }}</p>
+            <p>Tags: {{ video['tags'] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination or Shuffle Button -->
+    {% if random_sort %}
+        <!-- Display the Shuffle button for random sorting -->
+        <div class="shuffle-button">
+            <form method="get" action="{{ url_for('ape_feed') }}">
+                <input type="hidden" name="sort" value="RANDOM()">
+                <button type="submit">Shuffle</button>
+            </form>
+        </div>
+    {% else %}
+        <!-- Display pagination for non-random sorting -->
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('ape_feed', page=page - 1) }}" class="pagination-link">Previous</a>
+            {% endif %}
+            <span>Page {{ page }} of {{ total_pages }}</span>
+            {% if page < total_pages %}
+                <a href="{{ url_for('ape_feed', page=page + 1) }}" class="pagination-link">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</body>
+</html>

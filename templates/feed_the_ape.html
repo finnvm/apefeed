@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Feed The Ape</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Feed The Ape</h1>
+    <form method="post">
+        <label for="youtube_url">YouTube Channel URL:</label>
+        <input type="text" id="youtube_url" name="youtube_url" required><br>
+        
+        <label for="tags">Tags (comma-separated):</label>
+        <input type="text" id="tags" name="tags" required><br>
+
+        <button type="submit">Add to Feed</button>
+    </form>
+    <a href="{{ url_for('ape_feed') }}">Go to ApeFeed</a>
+</body>
+</html>
