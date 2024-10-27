@@ -105,7 +105,7 @@
             {% endif %}
             <span>Page {{ page }} of {{ total_pages }}</span>
             {% if page < total_pages %}
-                <a href="{{ url_for('ape_feed', page=page + 1, tags=request.args.getlist('tags'), sort=request.args.get('sort')) }}" class="pagination-link">Next</a>
+                <a href="{{ url_for('ape_feed', page=page + 1, tags=request.args.getlist('tags'), channel_filter=request.args.getlist('channel_filter'), sort=request.args.get('sort')) }}" class="pagination-link">Next</a>
             {% endif %}
         </div>
 
