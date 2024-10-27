@@ -11,7 +11,7 @@
             // Extract video ID from the full YouTube URL
             const urlParams = new URL(videoUrl);
             const videoID = urlParams.searchParams.get("v");
-            const embedUrl = `https://www.youtube.com/embed/${videoID}?autoplay=1`;
+            const embedUrl = `https://www.youtube.com/embed/${videoID}?rel=0&autoplay=1`;
 
             // Check if an embed container already exists
             const existingEmbed = document.getElementById(`embed-${videoId}`);
@@ -58,6 +58,9 @@
     <form method="get" action="{{ url_for('ape_feed') }}">
         <label for="tags">Filter by Tags (comma-separated):</label>
         <input type="text" id="tags" name="tags">
+
+        <label for="channel_filter">Filter by Channel Name</label>
+        <input type="text" id="channel_filter" name="channel_filter">
         
         <label for="sort">Sort by:</label>
         <select id="sort" name="sort">

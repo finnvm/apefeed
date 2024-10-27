@@ -18,7 +18,7 @@ def get_db_connection():
     return conn
 
 # Fetch videos in background thread
-def fetch_videos_in_batches(channel_url, tags, batch_size=10):
+def fetch_videos_in_batches(channel_url, tags, channel_name, batch_size=10):
     try:
         channel = Channel(channel_url)
         conn = get_db_connection()
@@ -27,8 +27,8 @@ def fetch_videos_in_batches(channel_url, tags, batch_size=10):
         for i, video in enumerate(channel.videos):
             # Insert video data in batches
             cursor.execute(
-                'INSERT OR IGNORE INTO videos (title, url, publish_date, tags) VALUES (?, ?, ?, ?)',
-                (video.title, video.watch_url, video.publish_date, tags)
+                'INSERT OR IGNORE INTO videos (title, url, publish_date, tags, channel_name, channel_url) VALUES (?, ?, ?, ?, ?, ?)',
+                (video.title, video.watch_url, video.publish_date, tags, channel_name, channel_url)
             )
 
             # Commit every `batch_size` videos
@@ -49,11 +49,12 @@ def home():
 def feed_the_ape():
     if request.method == 'POST':
         youtube_url = request.form['youtube_url']
+        youtube_channel_name = request.form['youtube_channel_name']
         tags = request.form['tags']
         tags = ', '.join([tag.strip() for tag in tags.split(',')])
 
         # Run video fetching in a separate thread
-        fetch_thread = threading.Thread(target=fetch_videos_in_batches, args=(youtube_url, tags))
+        fetch_thread = threading.Thread(target=fetch_videos_in_batches, args=(youtube_url, tags, youtube_channel_name))
         fetch_thread.start()
 
         # Redirect to loading screen or feed page
@@ -74,7 +75,8 @@ def ape_feed():
 
     # Filter and sort options
     tags_filter = request.args.getlist('tags')
-    print(tags_filter)
+    channel_filter = request.args.getlist('channel_filter')
+    print(channel_filter)
     #sort_order = request.args.get('sort', 'publish_date DESC')
     sort_order = request.args.get('sort') or 'publish_date DESC'
 
@@ -98,7 +100,8 @@ def ape_feed():
         return render_template('ape_feed.html', videos=videos, random_sort=True)
     
     # Standard sorting and pagination
-    if tags_filter:# and tags_filter[0] != '':
+    if tags_filter and tags_filter[0] != '':
+        print('tags_filter')
         tags_placeholder = ','.join(['?'] * len(tags_filter))
         query = f'''
             SELECT * FROM videos 
@@ -107,7 +110,7 @@ def ape_feed():
             LIMIT ? OFFSET ?
         '''
         videos = cursor.execute(query, tags_filter + [items_per_page, offset]).fetchall()
-        print(len(videos))
+        #print(len(videos))
 
         total_items_query = f'''
             SELECT * FROM videos 
@@ -115,6 +118,24 @@ def ape_feed():
         '''
 
         total_items_query = cursor.execute(f'SELECT COUNT(*) FROM videos where tags like "%{tags_filter[0]}%"').fetchone()
+    elif channel_filter:
+        print('channel_filter')
+        channels_placeholder = ','.join(['?'] * len(channel_filter))
+        query = f'''
+            SELECT * FROM videos 
+            WHERE channel_name LIKE "%" || ? || "%" 
+            ORDER BY {sort_order} 
+            LIMIT ? OFFSET ?
+        '''
+        videos = cursor.execute(query, channel_filter + [items_per_page, offset]).fetchall()
+        #print(len(videos))
+
+        total_items_query = f'''
+            SELECT * FROM videos 
+            WHERE channel_name LIKE "%" 
+        '''
+
+        total_items_query = cursor.execute(f'SELECT COUNT(*) FROM videos where channel_name like "%{channel_filter[0]}%"').fetchone()
     else:
         query = f'SELECT * FROM videos ORDER BY {sort_order} LIMIT ? OFFSET ?'
         videos = cursor.execute(query, (items_per_page, offset)).fetchall()
@@ -177,6 +198,48 @@ def format_datetime(value, format="%B %d, %Y, %I:%M %p", target_timezone="UTC"):
         return dt.strftime(format)
     except ValueError:
         return value  # Return as-is if there's an error
+
+
+
+
+
+
+
+
+
+
+def insert_video(video):
+    print('insert video?')
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    # Prepare SQL to insert data into videos table
+    sql = '''
+    INSERT INTO videos (title, url, publish_date, channel_name, channel_url)
+    VALUES (?, ?, ?, ?, ?)
+    '''
+    cursor.execute(sql, (video['title'], video['url'], video['publish_date'], video['channel_name'], video['channel_url']))
+    conn.commit()
+    conn.close()
+
+@app.route('/add_video', methods=['POST'])
+def add_video():
+    print('add video?')
+    video = request.json
+
+    try:
+        # Insert video into the database
+        insert_video(video)
+        return jsonify({"status": "success"}), 201
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
