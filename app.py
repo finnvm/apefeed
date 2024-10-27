@@ -74,7 +74,10 @@ def ape_feed():
 
     # Filter and sort options
     tags_filter = request.args.getlist('tags')
-    sort_order = request.args.get('sort', 'publish_date')
+    print(tags_filter)
+    #sort_order = request.args.get('sort', 'publish_date DESC')
+    sort_order = request.args.get('sort') or 'publish_date DESC'
+
 
     # Handle random sorting separately
     if sort_order == "RANDOM()":
@@ -95,18 +98,20 @@ def ape_feed():
         return render_template('ape_feed.html', videos=videos, random_sort=True)
     
     # Standard sorting and pagination
-    if tags_filter:
+    if tags_filter:# and tags_filter[0] != '':
+        print('tags are not empty')
         tags_placeholder = ','.join(['?'] * len(tags_filter))
         query = f'''
             SELECT * FROM videos 
             WHERE tags LIKE "%" || ? || "%" 
-            ORDER BY {sort_order} desc 
+            ORDER BY {sort_order} 
             LIMIT ? OFFSET ?
         '''
         videos = cursor.execute(query, tags_filter + [items_per_page, offset]).fetchall()
     else:
-        query = f'SELECT * FROM videos ORDER BY {sort_order} desc LIMIT ? OFFSET ?'
+        query = f'SELECT * FROM videos ORDER BY {sort_order} LIMIT ? OFFSET ?'
         videos = cursor.execute(query, (items_per_page, offset)).fetchall()
+
 
     # Get the total number of items for pagination calculation
     total_items_query = cursor.execute('SELECT COUNT(*) FROM videos').fetchone()
@@ -114,7 +119,7 @@ def ape_feed():
     total_pages = (total_items + items_per_page - 1) // items_per_page  # Round up
 
     conn.close()
-    return render_template('ape_feed.html', videos=videos, page=page, total_pages=total_pages, random_sort=False)
+    return render_template('ape_feed.html', videos=videos, page=page, total_pages=total_pages, random_sort=False, sort_order=sort_order)
 
 
 
@@ -134,14 +139,16 @@ def api_feed():
     cursor = conn.cursor()
 
     tags_filter = request.args.getlist('tags')
-    sort_order = request.args.get('sort', 'publish_date')
+    #sort_order = request.args.get('sort', 'publish_date DESC')
+    sort_order = request.args.get('sort') or 'publish_date DESC'
+
 
     if tags_filter:
         tags_placeholder = ','.join(['?'] * len(tags_filter))
-        query = f'SELECT * FROM videos WHERE tags LIKE "%" || ? || "%" ORDER BY {sort_order} desc'
+        query = f'SELECT * FROM videos WHERE tags LIKE "%" || ? || "%" ORDER BY {sort_order}'
         videos = cursor.execute(query, tags_filter).fetchall()
     else:
-        videos = cursor.execute(f'SELECT * FROM videos ORDER BY {sort_order} desc').fetchall()
+        videos = cursor.execute(f'SELECT * FROM videos ORDER BY {sort_order}').fetchall()
 
     videos = [dict(video) for video in videos]
     conn.close()

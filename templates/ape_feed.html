@@ -61,7 +61,8 @@
         
         <label for="sort">Sort by:</label>
         <select id="sort" name="sort">
-            <option value="date_added" {% if not random_sort %}selected{% endif %}>Date Added</option>
+            <option value="publish_date desc" {% if sort_order == 'publish_date desc' %}selected{% endif %}>Latest Videos</option>
+            <option value="publish_date asc" {% if sort_order == 'publish_date asc' %}selected{% endif %}>Oldest Videos</option>
             <option value="RANDOM()" {% if random_sort %}selected{% endif %}>Random</option>
         </select>
         <button type="submit">Apply</button>
@@ -93,15 +94,17 @@
         </div>
     {% else %}
         <!-- Display pagination for non-random sorting -->
+        <!-- Pagination Links with Filter Parameters -->
         <div class="pagination">
             {% if page > 1 %}
-                <a href="{{ url_for('ape_feed', page=page - 1) }}" class="pagination-link">Previous</a>
+                <a href="{{ url_for('ape_feed', page=page - 1, tags=request.args.getlist('tags'), sort=request.args.get('sort')) }}" class="pagination-link">Previous</a>
             {% endif %}
             <span>Page {{ page }} of {{ total_pages }}</span>
             {% if page < total_pages %}
-                <a href="{{ url_for('ape_feed', page=page + 1) }}" class="pagination-link">Next</a>
+                <a href="{{ url_for('ape_feed', page=page + 1, tags=request.args.getlist('tags'), sort=request.args.get('sort')) }}" class="pagination-link">Next</a>
             {% endif %}
         </div>
+
     {% endif %}
 </body>
 </html>
