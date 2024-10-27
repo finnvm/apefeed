@@ -119,15 +119,14 @@ a:hover {
 }
 
 /* Pagination and Shuffle Button */
-.pagination,
-.shuffle-button {
+.pagination {
     display: flex;
     justify-content: center;
+    align-items: center;
     margin-top: 20px;
 }
 
-.pagination-link,
-.shuffle-button button {
+.pagination-link {
     padding: 8px 16px;
     background-color: #4CAF50;
     color: white;
@@ -138,10 +137,39 @@ a:hover {
     transition: background-color 0.2s ease;
 }
 
-.pagination-link:hover,
+.pagination-link:hover {
+    background-color: #45a049;
+}
+
+.pagination span {
+    font-size: 1rem;
+    color: #333;
+}
+
+
+
+.shuffle-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.shuffle-button button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
 .shuffle-button button:hover {
     background-color: #45a049;
 }
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {

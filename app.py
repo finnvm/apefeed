@@ -4,6 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, f
 from pytubefix import Channel
 import random
 import time
+from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 app.secret_key = 'some_secret_key'  # For flash messages
@@ -72,7 +74,7 @@ def ape_feed():
 
     # Filter and sort options
     tags_filter = request.args.getlist('tags')
-    sort_order = request.args.get('sort', 'date_added')
+    sort_order = request.args.get('sort', 'publish_date')
 
     # Handle random sorting separately
     if sort_order == "RANDOM()":
@@ -98,12 +100,12 @@ def ape_feed():
         query = f'''
             SELECT * FROM videos 
             WHERE tags LIKE "%" || ? || "%" 
-            ORDER BY {sort_order} 
+            ORDER BY {sort_order} desc 
             LIMIT ? OFFSET ?
         '''
         videos = cursor.execute(query, tags_filter + [items_per_page, offset]).fetchall()
     else:
-        query = f'SELECT * FROM videos ORDER BY {sort_order} LIMIT ? OFFSET ?'
+        query = f'SELECT * FROM videos ORDER BY {sort_order} desc LIMIT ? OFFSET ?'
         videos = cursor.execute(query, (items_per_page, offset)).fetchall()
 
     # Get the total number of items for pagination calculation
@@ -132,18 +134,35 @@ def api_feed():
     cursor = conn.cursor()
 
     tags_filter = request.args.getlist('tags')
-    sort_order = request.args.get('sort', 'date_added')
+    sort_order = request.args.get('sort', 'publish_date')
 
     if tags_filter:
         tags_placeholder = ','.join(['?'] * len(tags_filter))
-        query = f'SELECT * FROM videos WHERE tags LIKE "%" || ? || "%" ORDER BY {sort_order}'
+        query = f'SELECT * FROM videos WHERE tags LIKE "%" || ? || "%" ORDER BY {sort_order} desc'
         videos = cursor.execute(query, tags_filter).fetchall()
     else:
-        videos = cursor.execute(f'SELECT * FROM videos ORDER BY {sort_order}').fetchall()
+        videos = cursor.execute(f'SELECT * FROM videos ORDER BY {sort_order} desc').fetchall()
 
     videos = [dict(video) for video in videos]
     conn.close()
     return jsonify(videos)
+
+
+@app.template_filter('format_datetime')
+def format_datetime(value, format="%B %d, %Y, %I:%M %p", target_timezone="UTC"):
+    try:
+        # Parse the datetime string with timezone info
+        dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S%z")
+        
+        # Convert to the target timezone
+        target_tz = pytz.timezone(target_timezone)
+        dt = dt.astimezone(target_tz)
+        
+        # Format the datetime
+        return dt.strftime(format)
+    except ValueError:
+        return value  # Return as-is if there's an error
+
 
 if __name__ == '__main__':
     app.run(debug=True)

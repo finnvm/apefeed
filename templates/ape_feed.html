@@ -76,7 +76,7 @@
                     {{ video['title'] }}
                 </a>
             </h2>
-            <p>Published on: {{ video['publish_date'] }}</p>
+            <p>Published on: {{ video['publish_date'] | format_datetime }} </p>
             <p>Tags: {{ video['tags'] }}</p>
         </div>
         {% endfor %}
