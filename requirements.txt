@@ -1,3 +1,5 @@
+beautifulsoup4
 Flask
-gunicorn
 pytubefix
+pytz
+Requests
