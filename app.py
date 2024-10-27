@@ -99,7 +99,6 @@ def ape_feed():
     
     # Standard sorting and pagination
     if tags_filter:# and tags_filter[0] != '':
-        print('tags are not empty')
         tags_placeholder = ','.join(['?'] * len(tags_filter))
         query = f'''
             SELECT * FROM videos 
@@ -108,13 +107,22 @@ def ape_feed():
             LIMIT ? OFFSET ?
         '''
         videos = cursor.execute(query, tags_filter + [items_per_page, offset]).fetchall()
+        print(len(videos))
+
+        total_items_query = f'''
+            SELECT * FROM videos 
+            WHERE tags LIKE "%" 
+        '''
+
+        total_items_query = cursor.execute(f'SELECT COUNT(*) FROM videos where tags like "%{tags_filter[0]}%"').fetchone()
     else:
         query = f'SELECT * FROM videos ORDER BY {sort_order} LIMIT ? OFFSET ?'
         videos = cursor.execute(query, (items_per_page, offset)).fetchall()
 
 
-    # Get the total number of items for pagination calculation
-    total_items_query = cursor.execute('SELECT COUNT(*) FROM videos').fetchone()
+
+        # Get the total number of items for pagination calculation
+        total_items_query = cursor.execute('SELECT COUNT(*) FROM videos').fetchone()
     total_items = total_items_query[0] if total_items_query else 0
     total_pages = (total_items + items_per_page - 1) // items_per_page  # Round up
 
